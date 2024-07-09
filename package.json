@@ -1,0 +1,33 @@
+{
+  "name": "sigma-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "dev": "bun run src/index.ts "
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/damerau-levenshtein": "^1.0.2",
+    "@types/latinize": "^0.2.18",
+    "@types/luxon": "^3.4.2",
+    "@types/pg": "^8.11.6",
+    "drizzle-kit": "^0.22.7"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "double-metaphone": "^2.0.1",
+    "drizzle-orm": "^0.31.2",
+    "latinize": "^2.0.0",
+    "luxon": "^3.4.4",
+    "metaphone": "^2.0.1",
+    "pg": "^8.12.0",
+    "redis": "^4.6.15",
+    "string-similarity-js": "^2.1.4",
+    "tesseract.js": "^5.1.0"
+  }
+}

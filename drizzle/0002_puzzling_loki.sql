@@ -1,0 +1,1 @@
+ALTER TABLE "automod_rules" ADD COLUMN "rule_id" serial NOT NULL;
