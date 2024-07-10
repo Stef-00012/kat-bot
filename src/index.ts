@@ -6,9 +6,9 @@ import {
 } from "discord.js";
 import * as RateLimitCommand from "./commands/ratelimit";
 import * as ThresholdCommand from "./commands/threshold";
+import * as HelpCommand from "./commands/help";
 
 import { rest } from "./rest";
-import { ensureGuild } from "./modules/guild";
 import { fetchRules, runRules } from "./modules/automod";
 
 const client = new Client({
@@ -46,7 +46,11 @@ client.on("ready", async () => {
     status: PresenceUpdateStatus.DoNotDisturb,
   });
 
-  const commands = [RateLimitCommand.command, ThresholdCommand.command];
+  const commands = [
+    RateLimitCommand.command,
+    ThresholdCommand.command,
+    HelpCommand.command,
+  ];
 
   await rest.put(
     Routes.applicationGuildCommands(
@@ -65,6 +69,8 @@ client.on("interactionCreate", async (inter) => {
       await RateLimitCommand.execute(inter);
     } else if (inter.commandName === ThresholdCommand.command.name) {
       await ThresholdCommand.execute(inter);
+    } else if (inter.commandName === HelpCommand.command.name) {
+      await HelpCommand.execute(inter);
     }
   }
 });
