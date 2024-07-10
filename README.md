@@ -1,15 +1,11 @@
-# sigma-bot
+# Kat Bot
+Developed by Linker-123
 
-To install dependencies:
+Currently featuring an advanced AutoMod framework, allowing for easy addition of new AutoMod filters and rules
 
-```bash
-bun install
-```
+Feel free to contribute to the code!
 
-To run:
-
-```bash
-bun run src/index.ts
-```
-
-This project was created using `bun init` in bun v1.1.7. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+### Available commands:
+- /help
+- /ratelimit
+- /threshold
