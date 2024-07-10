@@ -24,7 +24,7 @@ const client = new Client({
 });
 
 client.on("messageCreate", async (ev) => {
-  if (!ev.channel.isTextBased() || !ev.guild) {
+  if (!ev.channel.isTextBased() || !ev.guild || ev.author.bot) {
     return;
   }
 
@@ -47,17 +47,6 @@ client.on("ready", async () => {
   });
 
   const commands = [RateLimitCommand.command, ThresholdCommand.command];
-
-  const ch = client.guilds.cache
-    .get("795393018764591134")
-    ?.channels.cache.get("907306705090646066");
-  if (ch?.isTextBased()) {
-    ch.send(`
-      Hello, I'm new here!
-      -# This user is under surveillance by the U.S. FBI.
-      -# Do not contact this user, he is the subject of a criminal case under 18 U.S.C. § 2332b effective April 24, 1996. • [Learn more](<https://www.justice.gov/archives/jm/criminal-resource-manual-13-terrorism-transcending-national-boundaries-18-usc-2332b>)
-      `);
-  }
 
   await rest.put(
     Routes.applicationGuildCommands(

@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { db } from "../db";
-import { automodRules } from "../schema";
+import { automodRules, memberWarns, warnThresholds } from "../schema";
 import { redisClient } from "../redis";
 import { PermissionFlagsBits, Routes, type Message } from "discord.js";
 import { DateTime } from "luxon";
@@ -59,8 +59,8 @@ async function applyActions(
   const applicable = cancelOut(computeHierarchy(actions));
   const guild = event.guild!;
   const memberId = event.author.id;
-  const member = event.member ?? (await guild.members.fetch(memberId));
   const selfMember = guild.members.me ?? (await guild.members.fetchMe());
+  let member = event.member ?? (await guild.members.fetch(memberId));
 
   if (!member) {
     console.warn(
@@ -92,29 +92,51 @@ async function applyActions(
       await member.kick(reason);
     } else if (
       action === ActionHierarchy.Timeout &&
-      (!member.communicationDisabledUntilTimestamp ||
-        member.communicationDisabledUntilTimestamp < Date.now()) &&
       selfMember.permissions.has(PermissionFlagsBits.ModerateMembers)
     ) {
       const actualDuration = duration < 60 ? 3600 : duration;
-      await member.edit({
-        communicationDisabledUntil: DateTime.now()
-          .plus({ millisecond: Math.ceil(actualDuration * 1000) })
-          .toMillis(),
-        reason,
-      });
-    } else if (action === ActionHierarchy.Warn) {
-      await createWarn({
-        guildId: guild.id,
-        modId: selfMember.id,
-        reason,
-        targetId: memberId,
-      });
+      const wannaTimeoutUntil = DateTime.now()
+        .plus({ millisecond: Math.ceil(actualDuration * 1000) })
+        .toMillis();
+      if (
+        !member.communicationDisabledUntilTimestamp ||
+        member.communicationDisabledUntilTimestamp < Date.now()
+      ) {
+        /// not muted
+        await member.edit({
+          communicationDisabledUntil: wannaTimeoutUntil,
+          reason,
+        });
+      } else {
+        // already muted, try to resize
+        const mutedUntil = member.communicationDisabledUntilTimestamp;
+        if (mutedUntil < wannaTimeoutUntil) {
+          await member.edit({
+            communicationDisabledUntil: wannaTimeoutUntil,
+            reason,
+          });
+        }
+      }
     }
+    member = await guild.members.fetch(memberId);
   }
 }
 
+// Runs all the rules against this event,
+// the actions required to be performed are collected into a HashSet which guarantees uniqueness
+// the warning thresholds are also ran because one of the automod rules could warn the user which would
+// result in an action being performed on them
+// longest duration is picked out of all rules
+// side note: If the user is kicked, should the member be timed out when they join back? Assuming
+// the actions set has: Kick, Timeout
 export async function runRules(rules: AutoModRule[], event: Message<boolean>) {
+  const guild = event.guild!;
+  const memberId = event.author.id;
+  const selfMember = guild.members.me ?? (await guild.members.fetchMe());
+  const actions: Set<AutoModAction> = new Set();
+  let duration = 0;
+  let reasons = [];
+
   for (const rule of rules) {
     if (rule.type === "RateLimit") {
       const key = `rateLimit:${event.channelId}:${event.author.id}`;
@@ -124,14 +146,56 @@ export async function runRules(rules: AutoModRule[], event: Message<boolean>) {
       }
 
       if (result > rule.max) {
-        // apply actions
-        await applyActions(
-          rule.actions,
-          rule.duration,
-          event,
-          "exceeded ratelimit thershold"
-        ).catch(console.error);
+        if (rule.duration > duration) {
+          duration = rule.duration;
+        }
+
+        const reason = "Exceeded ratelimit threshold.";
+        reasons.push(reason);
+        for (const act of rule.actions) {
+          if (act === "Warn") {
+            await createWarn({
+              guildId: event.guildId!,
+              modId: selfMember.id,
+              reason,
+              targetId: memberId,
+            });
+          } else {
+            actions.add(act);
+          }
+        }
       }
     }
   }
+
+  const rows = await db
+    .select({ warnCount: sql`COUNT(1)` })
+    .from(memberWarns)
+    .where(
+      and(
+        eq(memberWarns.guildId, event.guildId!),
+        eq(memberWarns.targetId, event.author.id)
+      )
+    );
+  const firstRow = rows[0]!;
+  const warnCount = Number(firstRow.warnCount);
+
+  const warnThreshold = await db.query.warnThresholds.findFirst({
+    where: and(
+      eq(warnThresholds.guildId, event.guildId!),
+      lte(warnThresholds.minWarns, warnCount)
+    ),
+    orderBy: desc(warnThresholds.minWarns),
+  });
+
+  if (warnThreshold) {
+    for (const act of warnThreshold.actions) {
+      actions.add(act as AutoModAction);
+    }
+    if (warnThreshold.duration > duration) {
+      duration = warnThreshold.duration;
+    }
+    reasons.push(`Exceeded warning threshold ${warnThreshold.minWarns}`);
+  }
+  await applyActions(Array.from(actions), duration, event, reasons.join("\n"));
 }

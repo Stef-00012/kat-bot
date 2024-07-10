@@ -118,6 +118,10 @@ export async function execute(inter: ChatInputCommandInteraction) {
         actions.push("Timeout");
       } else if (p === "warn") {
         actions.push("Warn");
+      } else if (p === "ban") {
+        actions.push("Ban");
+      } else if (p === "kick") {
+        actions.push("Kick");
       } else {
         return await inter.reply(`${p} is not a valid action.`);
       }
