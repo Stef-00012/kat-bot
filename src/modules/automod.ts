@@ -2,16 +2,13 @@ import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { automodRules } from "../schema";
 import { redisClient } from "../redis";
-import {
-  PermissionFlagsBits,
-  Routes,
-  type Message,
-} from "discord.js";
+import { PermissionFlagsBits, Routes, type Message } from "discord.js";
 import { DateTime } from "luxon";
+import { createWarn } from "./warns";
 
 export type AutoModRule = RateLimitRule;
 
-export type AutoModAction = "Warn" | "Timeout";
+export type AutoModAction = keyof typeof ActionHierarchy;
 
 export enum ActionHierarchy {
   Ban,
@@ -60,7 +57,6 @@ async function applyActions(
   reason: string = ""
 ) {
   const applicable = cancelOut(computeHierarchy(actions));
-
   const guild = event.guild!;
   const memberId = event.author.id;
   const member = event.member ?? (await guild.members.fetch(memberId));
@@ -100,11 +96,19 @@ async function applyActions(
         member.communicationDisabledUntilTimestamp < Date.now()) &&
       selfMember.permissions.has(PermissionFlagsBits.ModerateMembers)
     ) {
+      const actualDuration = duration < 60 ? 3600 : duration;
       await member.edit({
         communicationDisabledUntil: DateTime.now()
-          .plus({ millisecond: Math.ceil(duration * 1000) })
+          .plus({ millisecond: Math.ceil(actualDuration * 1000) })
           .toMillis(),
         reason,
+      });
+    } else if (action === ActionHierarchy.Warn) {
+      await createWarn({
+        guildId: guild.id,
+        modId: selfMember.id,
+        reason,
+        targetId: memberId,
       });
     }
   }

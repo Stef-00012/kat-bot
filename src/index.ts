@@ -5,6 +5,8 @@ import {
   Routes,
 } from "discord.js";
 import * as RateLimitCommand from "./commands/ratelimit";
+import * as ThresholdCommand from "./commands/threshold";
+
 import { rest } from "./rest";
 import { ensureGuild } from "./modules/guild";
 import { fetchRules, runRules } from "./modules/automod";
@@ -44,7 +46,18 @@ client.on("ready", async () => {
     status: PresenceUpdateStatus.DoNotDisturb,
   });
 
-  const commands = [RateLimitCommand.command];
+  const commands = [RateLimitCommand.command, ThresholdCommand.command];
+
+  const ch = client.guilds.cache
+    .get("795393018764591134")
+    ?.channels.cache.get("907306705090646066");
+  if (ch?.isTextBased()) {
+    ch.send(`
+      Hello, I'm new here!
+      -# This user is under surveillance by the U.S. FBI.
+      -# Do not contact this user, he is the subject of a criminal case under 18 U.S.C. § 2332b effective April 24, 1996. • [Learn more](<https://www.justice.gov/archives/jm/criminal-resource-manual-13-terrorism-transcending-national-boundaries-18-usc-2332b>)
+      `);
+  }
 
   await rest.put(
     Routes.applicationGuildCommands(
@@ -59,11 +72,12 @@ client.on("ready", async () => {
 
 client.on("interactionCreate", async (inter) => {
   if (inter.isCommand() && inter.isChatInputCommand()) {
-    if (inter.commandName === "ratelimit") {
+    if (inter.commandName === RateLimitCommand.command.name) {
       await RateLimitCommand.execute(inter);
+    } else if (inter.commandName === ThresholdCommand.command.name) {
+      await ThresholdCommand.execute(inter);
     }
   }
 });
 
 await client.login(Bun.env.BOT_TOKEN);
-
