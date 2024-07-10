@@ -1,3 +1,7 @@
+secrets:
+  serverEnv:
+    file: ./.env
+
 services:
   redis:
     image: redis
@@ -6,3 +10,29 @@ services:
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     restart: unless-stopped
+    network_mode: host
+  
+  bot:
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    secrets:
+      - serverEnv
+    depends_on:
+      - redis
+      - postgres
+    network_mode: host
+      
+  postgres:
+    image: postgres:16.2-alpine
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${PG_PWD}
+      - POSTGRES_USER=katbot
+      - POSTGRES_DB=katbotdb
+    container_name: postgresdb
+    restart: always
+    command: ["postgres"]
+    network_mode: host
