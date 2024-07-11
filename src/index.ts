@@ -8,6 +8,7 @@ import * as RateLimitCommand from "./commands/ratelimit";
 import * as ThresholdCommand from "./commands/threshold";
 import * as HelpCommand from "./commands/help";
 import * as FakeBanCommand from "./commands/fun/ban";
+import * as PingCommand from "./commands/ping"
 
 import { rest } from "./rest";
 import { fetchRules, runRules } from "./modules/automod";
@@ -52,6 +53,7 @@ client.on("ready", async () => {
     ThresholdCommand.command,
     HelpCommand.command,
     FakeBanCommand.command,
+    PingCommand.command,
   ];
 
   await rest.put(
@@ -75,6 +77,8 @@ client.on("interactionCreate", async (inter) => {
       await HelpCommand.execute(inter);
     } else if (inter.commandName === FakeBanCommand.command.name) {
       await FakeBanCommand.execute(inter, client);
+    } else if (inter.commandName === PingCommand.command.name) {
+      await PingCommand.execute(inter);
     }
   }
 });
