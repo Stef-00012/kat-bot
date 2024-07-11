@@ -252,6 +252,10 @@ client.on("messageReactionRemove", async (reaction, user) => {
     return;
   }
 
+  if (message.starCount < sbConfig.minStars) {
+    await channel.messages.delete(message.postedMessageId!);
+  }
+
   if (message.posted && message.messageId === reaction.message.id) {
     await channel.messages.edit(message.postedMessageId!, {
       content: `⭐ **${message.starCount}**`,
