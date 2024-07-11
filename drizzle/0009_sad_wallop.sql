@@ -1,0 +1,1 @@
+ALTER TABLE "starboard_messages" ALTER COLUMN "posted_message_id" DROP NOT NULL;

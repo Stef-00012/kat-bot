@@ -43,6 +43,34 @@
       "when": 1720564279646,
       "tag": "0005_known_lyja",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1720723829716,
+      "tag": "0006_sharp_forgotten_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1720724679400,
+      "tag": "0007_complex_unicorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1720724845402,
+      "tag": "0008_slimy_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1720724857529,
+      "tag": "0009_sad_wallop",
+      "breakpoints": true
     }
   ]
 }

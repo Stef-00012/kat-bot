@@ -1,0 +1,1 @@
+ALTER TABLE "starboard_messages" ADD COLUMN "posted" boolean DEFAULT false NOT NULL;
