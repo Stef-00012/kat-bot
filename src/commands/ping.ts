@@ -7,7 +7,7 @@ export const command = new SlashCommandBuilder()
 export async function execute(inter: ChatInputCommandInteraction) {
   const ping = inter.client.ws.ping;
 
-  if (!ping) {
+  if (ping <= 0) {
     await inter.reply('could not determine delay');
     return;
   }
