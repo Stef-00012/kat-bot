@@ -254,6 +254,10 @@ client.on("messageReactionRemove", async (reaction, user) => {
 
   if (message.starCount < sbConfig.minStars) {
     await channel.messages.delete(message.postedMessageId!);
+    await db
+      .update(starboardMessages)
+      .set({ posted: false, postedMessageId: null })
+      .where(eq(starboardMessages.postedMessageId, message.postedMessageId!));
   }
 
   if (message.posted && message.messageId === reaction.message.id) {
