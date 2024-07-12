@@ -168,6 +168,10 @@ export async function runRules(rules: AutoModRule[], event: Message<boolean>) {
     }
   }
 
+  if (actions.size === 0) {
+    return;
+  }
+
   const rows = await db
     .select({ warnCount: sql`COUNT(1)` })
     .from(memberWarns)
