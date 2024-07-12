@@ -217,7 +217,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
       files: reaction.message.attachments.map((x) => x.url),
       content: `⭐ **${message.starCount}**`,
     });
-    // await msg.react("⭐");
+    await msg.react("⭐");
     await db
       .update(starboardMessages)
       .set({ posted: true, postedMessageId: msg.id })
