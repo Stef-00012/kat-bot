@@ -70,3 +70,9 @@ export const starboardMessages = pgTable("starboard_messages", {
   posted: boolean("posted").notNull().default(false),
   postedMessageId: varchar("posted_message_id", { length: 28 }),
 });
+
+export const starboardReactors = pgTable("starboard_reactors", {
+  messageId: varchar("message_id", { length: 28 }).notNull(),
+  reactorId: varchar("reactor_id", { length: 28 }).notNull(),
+  reactedAt: timestamp("reacted_at").notNull().defaultNow(),
+});

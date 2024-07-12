@@ -17,9 +17,14 @@ import * as PingCommand from "./commands/ping";
 import { rest } from "./rest";
 import { fetchRules, runRules } from "./modules/automod";
 import { db } from "./db";
-import { eq, or, sql } from "drizzle-orm";
-import { starboardConfigs, starboardMessages } from "./schema";
+import { and, eq, or, sql } from "drizzle-orm";
+import {
+  starboardConfigs,
+  starboardMessages,
+  starboardReactors,
+} from "./schema";
 import { ensureGuild } from "./modules/guild";
+import { redisClient } from "./redis";
 
 const client = new Client({
   intents: [
@@ -106,7 +111,6 @@ client.on("interactionCreate", async (inter) => {
 client.on("messageReactionAdd", async (reaction, user) => {
   if (user.bot) return;
   if (!reaction.message.guild) return;
-
   if (reaction.emoji.name !== "⭐") return;
 
   const sbConfig = await db.query.starboardConfigs.findFirst({
@@ -114,6 +118,16 @@ client.on("messageReactionAdd", async (reaction, user) => {
   });
 
   if (!sbConfig) return;
+
+  const reactCount = await redisClient.incr(`starboardReactors:${user.id}`);
+  if (reactCount === 1) {
+    await redisClient.expire(`starboardReactors:${user.id}`, 10000);
+  }
+
+  if (reactCount >= 3) {
+    return;
+  }
+
   if (reaction.partial) {
     await reaction.fetch();
   }
@@ -122,6 +136,15 @@ client.on("messageReactionAdd", async (reaction, user) => {
   if (!author /*|| author.id === user.id*/) {
     return;
   }
+
+  const reactor = await db.query.starboardReactors.findFirst({
+    where: and(
+      eq(starboardMessages.messageId, reaction.message.id),
+      eq(starboardReactors.reactorId, user.id)
+    ),
+  });
+
+  if (reactor) return;
 
   let message = await db.query.starboardMessages.findFirst({
     where: or(
@@ -148,6 +171,10 @@ client.on("messageReactionAdd", async (reaction, user) => {
       .returning();
     message = updatedRows[0]!;
   }
+
+  await db
+    .insert(starboardReactors)
+    .values({ messageId: reaction.message.id, reactorId: user.id });
 
   const guild = reaction.message.guild;
   const channel = await guild.channels.fetch(sbConfig.channelId);
@@ -195,7 +222,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
       .update(starboardMessages)
       .set({ posted: true, postedMessageId: msg.id })
       .where(eq(starboardMessages.messageId, reaction.message.id));
-  } else if (message.posted && message.messageId === reaction.message.id) {
+  } else if (message.posted) {
     await channel.messages.edit(message.postedMessageId!, {
       content: `⭐ **${message.starCount}**`,
     });
@@ -205,7 +232,6 @@ client.on("messageReactionAdd", async (reaction, user) => {
 client.on("messageReactionRemove", async (reaction, user) => {
   if (user.bot) return;
   if (!reaction.message.guild) return;
-
   if (reaction.emoji.name !== "⭐") return;
 
   const sbConfig = await db.query.starboardConfigs.findFirst({
@@ -213,6 +239,16 @@ client.on("messageReactionRemove", async (reaction, user) => {
   });
 
   if (!sbConfig) return;
+
+  const reactCount = await redisClient.incr(`starboardReactors:${user.id}`);
+  if (reactCount === 1) {
+    await redisClient.expire(`starboardReactors:${user.id}`, 10000);
+  }
+
+  if (reactCount >= 3) {
+    return;
+  }
+
   if (reaction.partial) {
     await reaction.fetch();
   }
@@ -223,8 +259,19 @@ client.on("messageReactionRemove", async (reaction, user) => {
   }
 
   let message = await db.query.starboardMessages.findFirst({
-    where: eq(starboardMessages.messageId, reaction.message.id),
+    where: or(
+      eq(starboardMessages.messageId, reaction.message.id),
+      eq(starboardMessages.postedMessageId, reaction.message.id)
+    ),
   });
+
+  const reactor = await db.query.starboardReactors.findFirst({
+    where: and(
+      eq(starboardMessages.messageId, reaction.message.id),
+      eq(starboardReactors.reactorId, user.id)
+    ),
+  });
+  if (!reactor) return;
 
   if (message) {
     const updatedRows = await db
@@ -233,6 +280,15 @@ client.on("messageReactionRemove", async (reaction, user) => {
       .where(eq(starboardMessages.messageId, reaction.message.id))
       .returning();
     message = updatedRows[0]!;
+
+    await db
+      .delete(starboardReactors)
+      .where(
+        and(
+          eq(starboardReactors.messageId, message.messageId),
+          eq(starboardReactors.reactorId, user.id)
+        )
+      );
   } else {
     return;
   }
