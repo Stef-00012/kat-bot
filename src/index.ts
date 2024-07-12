@@ -267,7 +267,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
 
   const reactor = await db.query.starboardReactors.findFirst({
     where: and(
-      eq(starboardMessages.messageId, reaction.message.id)  ,
+      eq(starboardMessages.messageId, reaction.message.id),
       eq(starboardReactors.reactorId, user.id)
     ),
   });
@@ -277,7 +277,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
     const updatedRows = await db
       .update(starboardMessages)
       .set({ starCount: sql`${starboardMessages.starCount} - 1` })
-      .where(eq(starboardMessages.messageId, reaction.message.id))
+      .where(eq(starboardMessages.messageId, message.messageId))
       .returning();
     message = updatedRows[0]!;
 
