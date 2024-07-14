@@ -178,11 +178,11 @@ export const execute = async (inter: ChatInputCommandInteraction) => {
 				reason ? `\nReason: ${reason}` : ""
 			}${
 				addedRoles.length > 0
-					? `\nAdded Roles: ${addedRoles.map((addedRole) => `<@&${addedRole}>`).join(", ")}`
+					? `\nAdded Roles: ${addedRoles.map((addedRole) => `<@&${addedRole}>`).join(", ")}.`
 					: ""
 			}${
 				removedRoles.length > 0
-					? `\nRemoved Roles: ${removedRoles.map((removedRole) => `<@&${removedRole}>`).join(", ")}`
+					? `\nRemoved Roles: ${removedRoles.map((removedRole) => `<@&${removedRole}>`).join(", ")}.`
 					: ""
 			}`,
 		)
