@@ -1,4 +1,7 @@
-import { type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  type ChatInputCommandInteraction,
+  SlashCommandBuilder,
+} from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -146,24 +149,24 @@ export const command = new SlashCommandBuilder()
 	);
 
 export async function execute(inter: ChatInputCommandInteraction) {
-	const selectedSubcommandGroup = inter.options.getSubcommandGroup();
-	const selectedSubcommand = inter.options.getSubcommand();
+  const selectedSubcommandGroup = inter.options.getSubcommandGroup();
+  const selectedSubcommand = inter.options.getSubcommand();
 
-	let filePath: string;
+  let filePath: string;
 
-	if (selectedSubcommandGroup)
-		filePath = path.join(
-			__dirname,
-			selectedSubcommandGroup,
-			`${selectedSubcommand}.ts`,
-		);
-	else filePath = path.join(__dirname, `${selectedSubcommand}.ts`);
+  if (selectedSubcommandGroup)
+    filePath = path.join(
+      __dirname,
+      selectedSubcommandGroup,
+      `${selectedSubcommand}.ts`
+    );
+  else filePath = path.join(__dirname, `${selectedSubcommand}.ts`);
 
-	if (!fs.existsSync(filePath)) return;
+  if (!fs.existsSync(filePath)) return;
 
-	const { execute } = await import(filePath);
+  const { execute } = await import(filePath);
 
-	if (!execute) return;
+  if (!execute) return;
 
-	await execute(inter);
+  await execute(inter);
 }

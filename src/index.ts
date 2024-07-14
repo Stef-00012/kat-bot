@@ -79,8 +79,8 @@ client.on("ready", async () => {
   await rest.put(
     Routes.applicationGuildCommands(
       client.application!.id,
-      // "795393018764591134"
-      "940249530962706492"
+      "795393018764591134"
+      // "940249530962706492"
     ),
     {
       body: commands,
