@@ -13,12 +13,14 @@ import * as StarboardCommand from "./commands/starboard";
 import * as HelpCommand from "./commands/help";
 import * as FakeBanCommand from "./commands/fun/ban";
 import * as PingCommand from "./commands/ping";
+import * as SocialCreditCommands from "./commands/socialCredit/index";
 
 import { rest } from "./rest";
 import { fetchRules, runRules } from "./modules/automod";
 import { db } from "./db";
 import { and, eq, or, sql } from "drizzle-orm";
 import {
+  socialCredits,
   starboardConfigs,
   starboardMessages,
   starboardReactors,
@@ -71,12 +73,14 @@ client.on("ready", async () => {
     FakeBanCommand.command,
     PingCommand.command,
     StarboardCommand.command,
+    SocialCreditCommands.command,
   ];
 
   await rest.put(
     Routes.applicationGuildCommands(
       client.application!.id,
-      "795393018764591134"
+      // "795393018764591134"
+      "940249530962706492"
     ),
     {
       body: commands,
@@ -99,6 +103,8 @@ client.on("interactionCreate", async (inter) => {
         await PingCommand.execute(inter);
       } else if (inter.commandName === StarboardCommand.command.name) {
         await StarboardCommand.execute(inter);
+      } else if (inter.commandName === SocialCreditCommands.command.name) {
+        await SocialCreditCommands.execute(inter);
       }
     } catch (err) {
       console.error(
