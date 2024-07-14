@@ -128,6 +128,21 @@ export const command = new SlashCommandBuilder()
 					.setName("list")
 					.setDescription("List all thresholds"),
 			),
+	)
+	.addSubcommandGroup((subcommandGroup) =>
+		subcommandGroup
+			.setName("leaderboard")
+			.setDescription("Social credit leaderboard")
+			.addSubcommand((subcommand) =>
+				subcommand
+					.setName("top")
+					.setDescription("Top social credits leaderboard")
+			)
+			.addSubcommand((subcommand) =>
+				subcommand
+					.setName("least")
+					.setDescription("Least social credits leaderboard")
+			)
 	);
 
 export async function execute(inter: ChatInputCommandInteraction) {
