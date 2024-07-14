@@ -2,6 +2,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  pgEnum,
   serial,
   text,
   timestamp,
@@ -75,4 +76,19 @@ export const starboardReactors = pgTable("starboard_reactors", {
   messageId: varchar("message_id", { length: 28 }).notNull(),
   reactorId: varchar("reactor_id", { length: 28 }).notNull(),
   reactedAt: timestamp("reacted_at").notNull().defaultNow(),
+});
+
+export const socialCredits = pgTable("social_credits", {
+  guildId: varchar("guild_id", { length: 28 }).notNull(),
+  userId: varchar("user_id", { length: 28 }).notNull(),
+  credits: integer("credits").default(500).notNull(),
+});
+
+export const thresholdTypeEnum = pgEnum("threshold_type", ["positive", "negative"]);
+
+export const socialCreditsThresholds = pgTable("social_credits_thresholds", {
+  guildId: varchar("guild_id", { length: 28 }).notNull(),
+  type: thresholdTypeEnum("threshold_type").notNull(),
+  amount: integer("amount").notNull(),
+  role: varchar("role", { length: 28 }).notNull(),
 });
