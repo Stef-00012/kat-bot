@@ -6,6 +6,6 @@ export const command = new SlashCommandBuilder()
 
 export async function execute(inter: ChatInputCommandInteraction) {
   await inter.reply(
-    `Hi, I'm KatBot. Developed by <@1154458236632698921>, using Bun and Discord.js ❤️\nContribute to my code on the [github page](<https://github.com/Linker-123/kat-bot>)`
+    `Hi, I'm SigmaBot. Developed by <@1154458236632698921>, using Bun and Discord.js ❤️\nContribute to my code on the [github page](<https://github.com/Linker-123/kat-bot>)`
   );
 }

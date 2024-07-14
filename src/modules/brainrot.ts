@@ -2,7 +2,16 @@ import { doubleMetaphone } from "double-metaphone";
 import latinize from "latinize";
 import stringSimilarity from "string-similarity-js";
 
-const words = ["skibidi", "sigma", "gronk", "fanum", "rizz", "gyatt", "σ", "balls"];
+const words = [
+  "skibidi",
+  "sigma",
+  "gronk",
+  "fanum",
+  "rizz",
+  "gyatt",
+  "σ",
+  "balls",
+];
 
 export function brainRotEval(msg: string) {
   // process
