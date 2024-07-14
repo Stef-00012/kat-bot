@@ -33,7 +33,7 @@ export const execute = async (inter: ChatInputCommandInteraction) => {
     const thresholdsString = thresholds.map(threhsold => `**Type**: ${threhsold.type}\n**Amount**: ${threhsold.amount}\n**Role**: <@&${threhsold.role}>`)
 
 	const embed = new EmbedBuilder()
-		.setTitle("Social Credit Threshold")
+		.setTitle("Social Credit Thresholds")
 		.setDescription(thresholdsString.join('\n\n'))
 
 	inter.editReply({
